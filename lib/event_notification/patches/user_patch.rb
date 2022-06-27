@@ -8,9 +8,9 @@ module EventNotification
 
         base.class_eval do
           unloadable
-          alias_method_chain 'notified_project_ids=', 'events'
-          alias_method_chain :update_notified_project_ids, :events
-          alias_method_chain :notify_about?, :event
+          alias_method 'notified_project_ids=', 'events'
+          alias_method :update_notified_project_ids, :events
+          alias_method :notify_about?, :event
         end
       end
 
