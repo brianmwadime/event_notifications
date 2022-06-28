@@ -27,6 +27,42 @@ Rails.configuration.to_prepare do
   require_relative './lib/event_notification/patches/acts_as_watchable_patch'
 end
 
+Rails.application.config.after_initialize do
+  unless Redmine::Acts::Watchable::InstanceMethods.included_modules.include? EventNotification::Patches::ActsAsWatchablePatch
+    Redmine::Acts::Watchable::InstanceMethods.send(:include, EventNotification::Patches::ActsAsWatchablePatch)
+  end
+  unless CustomField.included_modules.include? EventNotification::Patches::CustomFieldPatch
+    CustomField.send(:include, EventNotification::Patches::CustomFieldPatch)
+  end
+  unless Document.included_modules.include? EventNotification::Patches::DocumentPatch
+    Document.send(:include, EventNotification::Patches::DocumentPatch)
+  end
+  unless GroupsController.included_modules.include? EventNotification::Patches::GroupsControllerPatch
+    GroupsController.send(:include, EventNotification::Patches::GroupsControllerPatch)
+  end
+  unless Issue.included_modules.include? EventNotification::Patches::IssuePatch
+    Issue.send(:include, EventNotification::Patches::IssuePatch)
+  end
+  unless Journal.included_modules.include? EventNotification::Patches::JournalPatch
+    Journal.send(:include, EventNotification::Patches::JournalPatch)
+  end
+  Mailer.send(:include, EventNotification::Patches::MailerPatch)
+  Member.send(:include, EventNotification::Patches::MemberPatch)
+  Message.send(:include, EventNotification::Patches::MessagePatch)
+  News.send(:include, EventNotification::Patches::NewsPatch)
+  PrincipalMembershipsController.send(:include, EventNotification::Patches::PrincipalMembershipsControllerPatch)
+  Project.send(:include, EventNotification::Patches::ProjectPatch)
+  User.send(:include, EventNotification::Patches::UserPatch)
+  UserPreference.send(:include, EventNotification::Patches::UserPreferencePatch)
+  UsersHelper.send(:include, EventNotification::Patches::UsersHelperPatch)
+  Watcher.send(:include, EventNotification::Patches::WatcherPatch)
+  WatchersController.send(:include, EventNotification::Patches::WatchersControllerPatch)
+  WikiContent.send(:include, EventNotification::Patches::WikiContentPatch)
+  # unless GroupsHelper.included_modules.include?(RedmineAutoAssignGroup::GroupsHelperPatch)
+  #   GroupsHelper.send(:prepend, RedmineAutoAssignGroup::GroupsHelperPatch)
+  # end
+end
+
 Redmine::Plugin.register :event_notifications do
   name 'Event Notifications plugin'
   author 'Rupesh J'
