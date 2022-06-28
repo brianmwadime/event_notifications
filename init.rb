@@ -1,36 +1,34 @@
 require 'redmine'
 
-# require_dependency 'event_notification/patches/users_helper_patch'
-require_dependency 'event_notification/patches/user_patch'
-require_dependency 'event_notification/patches/project_patch'
-require_dependency 'event_notification/patches/member_patch'
-require_dependency 'event_notification/patches/issue_patch'
-require_dependency 'event_notification/patches/document_patch'
-require_dependency 'event_notification/patches/journal_patch'
-require_dependency 'event_notification/patches/message_patch'
-require_dependency 'event_notification/patches/wiki_content_patch'
-require_dependency 'event_notification/patches/watchers_controller_patch'
-require_dependency 'event_notification/patches/groups_controller_patch'
-require_dependency 'event_notification/patches/principal_memberships_controller_patch'
-require_dependency 'event_notification/patches/user_preference_patch'
-require_dependency 'event_notification/patches/custom_field_patch'
-require_dependency 'event_notification/patches/news_patch'
-require_dependency 'event_notification/patches/watcher_patch'
+require_relative './lib/event_notification/patches/users_helper_patch'
+require_relative './lib/event_notification/patches/user_patch'
+require_relative './lib/event_notification/patches/project_patch'
+require_relative './lib/event_notification/patches/member_patch'
+require_relative './lib/event_notification/patches/issue_patch'
+require_relative './lib/event_notification/patches/document_patch'
+require_relative './lib/event_notification/patches/journal_patch'
+require_relative './lib/event_notification/patches/message_patch'
+require_relative './lib/event_notification/patches/wiki_content_patch'
+require_relative './lib/event_notification/patches/watchers_controller_patch'
+require_relative './lib/event_notification/patches/groups_controller_patch'
+require_relative './lib/event_notification/patches/principal_memberships_controller_patch'
+require_relative './lib/event_notification/patches/user_preference_patch'
+require_relative './lib/event_notification/patches/custom_field_patch'
+require_relative './lib/event_notification/patches/news_patch'
+require_relative './lib/event_notification/patches/watcher_patch'
 
-require_dependency 'event_notification/patches/mailer_patch'
+require_relative './lib/event_notification/patches/mailer_patch'
 
 ActionDispatch::Callbacks.to_prepare do
   require_dependency 'event_notification/hooks/event_notification_hook_listener'
 end
 
-Rails.configuration.after_initialize do
-  require_dependency 'event_notification/patches/acts_as_watchable_patch'
+Rails.configuration.to_prepare do
+  require_relative './lib/event_notification/patches/acts_as_watchable_patch'
 end
 
 Rails.application.config.after_initialize do
-  unless Redmine::Acts::Watchable::InstanceMethods.included_modules.include? EventNotification::Patches::ActsAsWatchablePatch
-    Redmine::Acts::Watchable::InstanceMethods.send(:include, EventNotification::Patches::ActsAsWatchablePatch)
-  end
+  Redmine::Acts::Watchable::InstanceMethods.send(:include, EventNotification::Patches::ActsAsWatchablePatch)
   CustomField.send(:include, EventNotification::Patches::CustomFieldPatch)
   Document.send(:include, EventNotification::Patches::DocumentPatch)
   GroupsController.send(:include, EventNotification::Patches::GroupsControllerPatch)
@@ -57,7 +55,7 @@ Redmine::Plugin.register :event_notifications do
   name 'Event Notifications plugin'
   author 'Rupesh J'
   description 'Customizes redmine project notification settings for every project event.'
-  version '2.4.2'
+  version '2.4.1'
   author_url 'mailto:rupeshj@esi-group.com'
 
   settings :default => {
