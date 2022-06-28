@@ -1,6 +1,6 @@
 require 'redmine'
 
-require_dependency 'event_notification/patches/users_helper_patch'
+# require_dependency 'event_notification/patches/users_helper_patch'
 require_dependency 'event_notification/patches/user_patch'
 require_dependency 'event_notification/patches/project_patch'
 require_dependency 'event_notification/patches/member_patch'
@@ -17,7 +17,7 @@ require_dependency 'event_notification/patches/custom_field_patch'
 require_dependency 'event_notification/patches/news_patch'
 require_dependency 'event_notification/patches/watcher_patch'
 
-require 'event_notification/patches/mailer_patch'
+require_dependency 'event_notification/patches/mailer_patch'
 
 ActionDispatch::Callbacks.to_prepare do
   require_dependency 'event_notification/hooks/event_notification_hook_listener'
