@@ -54,7 +54,7 @@ module EventNotification
             @notified_projects_ids = ids
           else
             logger.debug("Event Notifications: PATCH - Event Notification Not enabled #{ids}")
-            # notified_project_ids_without_events = ids # Commented coz test fails.
+            notified_project_ids_without_events = ids # Commented coz test fails.
             @notified_projects_ids_changed = true
             @notified_projects_ids = ids.map(&:to_i).uniq.select {|n| n > 0}
           end
