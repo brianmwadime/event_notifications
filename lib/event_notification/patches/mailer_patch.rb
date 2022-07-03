@@ -8,7 +8,7 @@ module EventNotification
         base.extend(ClassMethods)
         base.send(:include, InstanceMethods)
         base.instance_eval do
-          alias_method_chain :attachments_added, :events
+          alias_method :attachments_added, :events
           alias_method :old_mail, :mail
 
           define_method(:mail) do |headers={}, &block|

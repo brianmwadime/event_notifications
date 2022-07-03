@@ -8,7 +8,7 @@ module EventNotification
         base.class_eval do
           unloadable
           before_save         :set_issue_updated_options
-          # alias_method_chain  :notified_users, :events
+          # alias_method  :notified_users, :events
         end
       end
 

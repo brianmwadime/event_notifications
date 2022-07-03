@@ -11,9 +11,9 @@ module EventNotification
           validate :journal_admin_ghost, :if => Proc.new { |issue| !ActiveRecord::Base.record_timestamps && issue.current_journal.present? && !User.current.admin_ghost? } 
 
           before_save :set_new_issue_record
-          alias_method_chain :notified_users, :events
-          alias_method_chain :create_journal, :ghost
-          alias_method_chain :force_updated_on_change, :admin_ghost
+          alias_method :notified_users, :events
+          alias_method :create_journal, :ghost
+          alias_method :force_updated_on_change, :admin_ghost
         end
       end
 
