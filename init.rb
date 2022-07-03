@@ -1,5 +1,7 @@
 require 'redmine'
 
+require_relative './lib/event_notification/patches/users_helper_patch'
+require_relative './lib/event_notification/patches/user_patch'
 require_relative './lib/event_notification/patches/project_patch'
 require_relative './lib/event_notification/patches/member_patch'
 require_relative './lib/event_notification/patches/issue_patch'
@@ -14,8 +16,6 @@ require_relative './lib/event_notification/patches/user_preference_patch'
 require_relative './lib/event_notification/patches/custom_field_patch'
 require_relative './lib/event_notification/patches/news_patch'
 require_relative './lib/event_notification/patches/watcher_patch'
-require_relative './lib/event_notification/patches/users_helper_patch'
-require_relative './lib/event_notification/patches/user_patch'
 
 require_relative './lib/event_notification/patches/mailer_patch'
 
