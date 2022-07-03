@@ -12,9 +12,8 @@ module EventNotification
           safe_attributes :notify_non_member,
             :if => lambda {|project, user| project.new_record? || user.allowed_to?(:edit_project, project) }
 
-          # alias_method :notified_users, :events
-          alias_method :notified_users_without_events, :events
-          alias_method :events, :notified_users_with_events
+          alias_method :notified_users_without_events, :notified_users
+          alias_method :notified_users, :notified_users_with_events
         end
       end
 
