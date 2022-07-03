@@ -4,11 +4,12 @@ module EventNotification
 
       def self.included(base) # :nodoc:
         base.send(:include, InstanceMethods)
-        base.extend(InstanceMethods)
 
         base.class_eval do
           unloadable
-          alias_method :notified_users, :events
+
+          alias_method :notified_users_without_events, :notified_users
+          alias_method :notified_users, :notified_users_with_events
         end
       end
 

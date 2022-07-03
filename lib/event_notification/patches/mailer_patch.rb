@@ -8,17 +8,36 @@ module EventNotification
         base.extend(ClassMethods)
         base.send(:include, InstanceMethods)
         base.instance_eval do
-          alias_method :attachments_added, :events
+          alias_method :attachments_added_without_events, :attachments_added
+          alias_method :attachments_added, :attachments_added_with_events
+
           alias_method :old_mail, :mail
 
           define_method(:mail) do |headers={}, &block|
+            # Add a display name to the From field if Setting.mail_from does not
+            # include it
+            begin
+              mail_from = Mail::Address.new(Setting.mail_from)
+              if mail_from.display_name.blank? && mail_from.comments.blank?
+                mail_from.display_name =
+                  @author&.logged? ? @author.name : Setting.app_title
+              end
+              from = mail_from.format
+              list_id = "<#{mail_from.address.to_s.tr('@', '.')}>"
+            rescue Mail::Field::IncompleteParseError
+              # Use Setting.mail_from as it is if Mail::Address cannot parse it
+              # (probably the emission address is not RFC compliant)
+              from = Setting.mail_from.to_s
+              list_id = "<#{from.tr('@', '.')}>"
+            end
+
             headers.reverse_merge! 'X-Mailer' => 'Redmine',
-                                   'X-Redmine-Host' => Setting.host_name,
-                                   'X-Redmine-Site' => Setting.app_title,
-                                   'X-Auto-Response-Suppress' => 'All',
-                                   'Auto-Submitted' => 'auto-generated',
-                                   'From' => redmine_from,
-                                   'List-Id' => "<#{Setting.mail_from.to_s.gsub('@', '.')}>"
+                    'X-Redmine-Host' => Setting.host_name,
+                    'X-Redmine-Site' => Setting.app_title,
+                    'X-Auto-Response-Suppress' => 'All',
+                    'Auto-Submitted' => 'auto-generated',
+                    'From' => from,
+                    'List-Id' => list_id
 
             # Replaces users with their email addresses
             [:to, :cc, :bcc].each do |key|
@@ -30,13 +49,13 @@ module EventNotification
             # Removes the author from the recipients and cc
             # if the author does not want to receive notifications
             # about what the author do
-            if @author && @author.logged? && @author.pref.no_self_notified
+            if @author&.logged? && @author.pref.no_self_notified
               addresses = @author.mails
               headers[:to] -= addresses if headers[:to].is_a?(Array)
               headers[:cc] -= addresses if headers[:cc].is_a?(Array)
             end
 
-            if @author && @author.logged?
+            if @author&.logged?
               redmine_headers 'Sender' => @author.login
             end
 
@@ -47,39 +66,21 @@ module EventNotification
               headers[:cc] = nil
             end
 
-            # if @message_id_object
-            #   headers[:message_id] = @message_id_object.is_a?(Issue) ? @references_objects.collect {|o| "<#{self.class.references_for(o)}>"}.join(' ') : "<#{self.class.message_id_for(@message_id_object)}>"
-            # end
-            # if @references_objects && !@message_id_object.is_a?(Issue)
-            #   headers[:references] = @references_objects.collect {|o| "<#{self.class.references_for(o)}>"}.join(' ')
-            #   headers['In-Reply-To'] = @references_objects.collect {|o| "<#{self.class.references_for(o)}>"}.join(' ')
-            # end
-
             if @message_id_object
-              headers[:message_id] = "<#{self.class.message_id_for(@message_id_object)}>"
+              headers[:message_id] = "<#{self.class.message_id_for(@message_id_object, @user)}>"
             end
             if @references_objects
-              headers[:references] = @references_objects.collect {|o| "<#{self.class.references_for(o)}>"}.join(' ')
+              headers[:references] = @references_objects.collect {|o| "<#{self.class.references_for(o, @user)}>"}.join(' ')
             end
 
-            m = if block_given?
-                  super headers, &block
-                else
-                  super headers do |format|
-                    format.text
-                    format.html unless Setting.plain_text_mail?
-                  end
-                end
-            set_language_if_valid @initial_language
-
-            Rails.logger.info(" --------------------------- ")
-            Rails.logger.debug("Event Notifications: Mailer patch.")
-            # Rails.logger.info("Mail to : #{ headers[:to].is_a?(Array) ? headers[:to] : :to }")
-            # Rails.logger.info("Mail cc : #{ headers[:cc].is_a?(Array) ? headers[:cc] : :cc }")
-            Rails.logger.info("Mail bcc: #{ headers[:bcc].is_a?(Array) ? headers[:bcc] : :bcc }")
-            Rails.logger.info(" --------------------------- ")
-
-            m
+            if block_given?
+              super headers, &block
+            else
+              super headers do |format|
+                format.text
+                format.html unless Setting.plain_text_mail?
+              end
+            end
           end
         end
       end

@@ -7,7 +7,9 @@ module EventNotification
 
         base.class_eval do
           unloadable
-          alias_method :notified_watchers, :events
+
+          alias_method :notified_watchers_without_events, :notified_watchers
+          alias_method :notified_watchers, :notified_watchers_with_events
         end
       end
 
