@@ -8,15 +8,15 @@ module EventNotification
 
         base.class_eval do
           unloadable
-          # alias_method :notified_project_ids=, :events
-          alias_method :notified_project_ids_without_events=, :events
-          alias_method :events , :notified_project_ids_with_events=
-          # alias_method :update_notified_project_ids, :events
-          alias_method :update_notified_project_ids_without_events?, :events
-          alias_method :events, :update_notified_project_ids_with_events?
-          # alias_method :notify_about?, :event
-          alias_method :notify_about_without_event?, :event
-          alias_method :event, :notify_about_with_event?
+
+          alias_method :'notified_project_ids_without_events=', :'notified_project_ids='
+          alias_method :'notified_project_ids=', :'notified_project_ids_with_events='
+
+          alias_method :update_notified_project_ids_without_events, :update_notified_project_ids
+          alias_method :update_notified_project_ids, :update_notified_project_ids_with_events
+
+          alias_method :'notify_about_without_event?', :'notify_about?'
+          alias_method :'notify_about?', :'notify_about_with_event?'
         end
       end
 
@@ -53,7 +53,7 @@ module EventNotification
             @notified_projects_ids = ids
           else
             logger.debug("Event Notifications: PATCH - Event Notification Not enabled #{ids}")
-            notified_project_ids_without_events = ids # Commented coz test fails.
+            # notified_project_ids_without_events = ids # Commented coz test fails.
             @notified_projects_ids_changed = true
             @notified_projects_ids = ids.map(&:to_i).uniq.select {|n| n > 0}
           end
@@ -111,7 +111,7 @@ module EventNotification
             return true if default_notifier
             return false if object.current_journal && ( (object.current_journal.only_attachments && !pref.attachment_notification ) ||
               (object.current_journal.only_relations   && !pref.relation_notification) )
-            return true  if (object.author == self) || is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.assigned_to_was)
+            return true  if (object.author == self) || is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.parent)
             return false if !notified_projects_events(object.project).any?
 
             # logger.debug("Event Notifications: Issue.")
@@ -166,13 +166,13 @@ module EventNotification
                 case mail_notification
                 when 'only_my_events'
                   # user receives notifications for created/assigned issues on unselected projects
-                  object.author == self || is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.assigned_to_was) || default_notifier
+                  object.author == self || is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.previous_assignee) || default_notifier
                 when 'selected'
                   # user receives notifications for created/assigned issues on unselected projects
                   check_user_events(object)
                   #How to check if the object is newly created or updated.
                 when 'only_assigned'
-                  is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.assigned_to_was)
+                  is_or_belongs_to?(object.assigned_to) || is_or_belongs_to?(object.previous_assignee)
                 when 'only_owner'
                   object.author == self
                 end
@@ -193,4 +193,3 @@ end
 unless User.included_modules.include? EventNotification::Patches::UserPatch
   User.send(:include, EventNotification::Patches::UserPatch)
 end
-

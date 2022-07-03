@@ -19,14 +19,8 @@ require_relative './lib/event_notification/patches/watcher_patch'
 
 require_relative './lib/event_notification/patches/mailer_patch'
 
-ActiveSupport::Reloader.to_prepare do
-  require_dependency 'event_notification/hooks/event_notification_hook_listener'
-end
-# ActionDispatch::Callbacks.to_prepare do
-#   require_dependency 'event_notification/hooks/event_notification_hook_listener'
-# end
-
 Rails.configuration.to_prepare do
+  require_dependency 'event_notification/hooks/event_notification_hook_listener'
   require_relative './lib/event_notification/patches/acts_as_watchable_patch'
 end
 
